@@ -12,7 +12,6 @@ double appbarHeightSmaller = 75;
 double carouselHeight = 275;
 double fontHeader = 20;
 List<String> selectedCategoryList = List();
-String userName;
 TextEditingController productName = TextEditingController();
 TextEditingController productDetail = TextEditingController();
 TextEditingController productPrice = TextEditingController();

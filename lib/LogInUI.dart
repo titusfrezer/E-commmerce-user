@@ -35,7 +35,7 @@ class _LoginUiState extends State<LoginUi> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  "E- commerce",
+                  "Afroel E-commerce",
                   style: TextStyle(
                       fontSize: 25,
                       fontWeight: FontWeight.w600),

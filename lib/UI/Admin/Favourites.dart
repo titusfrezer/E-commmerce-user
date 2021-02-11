@@ -37,16 +37,19 @@ class _FavoritesState extends State<Favorites> {
         var DATA = snapshot.value;
         favouriteList.clear();
         for (var individualkey in widget.keys) {
-           FavouriteVar fav =
-          FavouriteVar(
-              DATA[individualkey]['productImage'],
-              DATA[individualkey]['productName'],
-              DATA[individualkey]['productPrice'].toString(),
-              DATA[individualkey]['email'],
-              individualkey.toString()
-          );
+          if (DATA[individualkey]['email'] == user.email) {
+            FavouriteVar fav =
+            FavouriteVar(
+                DATA[individualkey]['productImage'],
+                DATA[individualkey]['productName'],
+                DATA[individualkey]['productPrice'].toString(),
+                DATA[individualkey]['email'],
+                individualkey.toString()
+            );
+
           favouriteList.add(fav);
           print(favouriteList.length);
+        }
         }
       }
     });
@@ -66,13 +69,17 @@ class _FavoritesState extends State<Favorites> {
             stream: reqWish.onValue,
             builder: (context, snapshot) {
               if(snapshot.hasData){
+                Map <dynamic,dynamic> map = snapshot.data.snapshot.value;
               return ListView.builder(
-                    itemCount: favouriteList.length,
+                    itemCount: map.values.toList().length,
                     itemBuilder: (context, int index) {
-                      if (favouriteList[index].email == user.email) {
-                        print(favouriteList[index].email);
+                      if(map.values.toList()[index]['email'] == user.email) {
                         return Dismissible(
-                          key: Key(favouriteList[index].individualkey),
+                          background: Container(
+                            child: Center(child: Text('Delete')),
+                            color: Colors.red,
+                          ),
+                          key: Key(map.values.toList()[index].toString()),
                           confirmDismiss: (direction) {
                             return showDialog(
                                 context: context,
@@ -81,21 +88,22 @@ class _FavoritesState extends State<Favorites> {
                                     title: Text(
                                         'Are you sure you want to delete!!'),
                                     actions: <Widget>[
-                                      RaisedButton(
+                                      FlatButton(
                                           child: Text('Yes'),
                                           onPressed: () {
-                                            print("${favouriteList[index].individualkey}is key");
-                                            setState(() {
-                                              FirebaseDatabase.instance.reference()
-                                                  .child("WishList")
-                                                  .child(favouriteList[index]
-                                                  .individualkey).remove();
-                                            });
+                                            print("${favouriteList[index]
+                                                .individualkey}is key");
+
+                                            FirebaseDatabase.instance
+                                                .reference()
+                                                .child("WishList")
+                                                .child(map.keys.toList()[index])
+                                                .remove();
+
 
                                             Navigator.of(context).pop();
-                                            Navigator.of(context).pop();
                                           }),
-                                      RaisedButton(
+                                      FlatButton(
                                         child: Text('No'),
                                         onPressed: () {
                                           Navigator.of(context).pop();
@@ -110,21 +118,20 @@ class _FavoritesState extends State<Favorites> {
                             leading: FadeInImage(placeholder: AssetImage(
                                 'assets/images/ecorp-lightblue.png'),
                                 image: NetworkImage(
-                                    favouriteList[index].productImage)),
+                                    map.values
+                                        .toList()[index]['productImage'])),
                             title: Text(
-                                favouriteList[index].productName),
+                                map.values.toList()[index]['productName']),
                             subtitle: Text(
-                                favouriteList[index].productPrice.toString()),
+                                map.values.toList()[index]['productPrice']
+                                    .toString()),
                             trailing: Icon(Icons.favorite, color: background,),
 
                           ),
                         );
                       }
                       return Container();
-                    });}return SpinKitWave(
-                color: background,
-                size: 25,
-              );
+                    });}return Center(child: Text('Nothing added to favorite'),);
             }
           )));
   }

@@ -1,33 +1,33 @@
+import 'dart:io';
 import 'dart:ui';
-import 'package:url_launcher/url_launcher.dart' as UrlLauncher;
-import 'package:carousel_pro/carousel_pro.dart';
+import 'package:flutter_file_manager/flutter_file_manager.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:vendor/UI/Admin/Favourites.dart';
-import 'package:vendor/UI/Admin/Post.dart';
-import 'package:vendor/UI/Admin/SpecificCategoryListVendor.dart';
+import 'package:vendor/UI/User/About.dart';
+import 'package:vendor/UI/User/Help.dart';
 import 'package:vendor/UI/User/SingleProductDetail.dart';
 import 'package:vendor/UI/User/fetchDigital.dart';
 import 'package:vendor/UI/User/viewDigital.dart';
 import 'package:vendor/auth_service.dart';
 import 'package:vendor/variables/Categories2.dart';
-import 'package:vendor/variables/CategoriesList.dart';
-import 'package:vendor/variables/Categories.dart';
 import 'package:vendor/variables/CategoriesVendor.dart';
 import 'package:vendor/variables/cart.dart';
-import 'package:vendor/variables/searchService.dart';
 import 'package:vendor/variables/vars.dart';
 
 
 FirebaseAuth _auth;
 FirebaseUser user;
 List<String> carouselImage = List();
+
 var connectivity;
+String userPhone;
+String userName;
 
 class AddCategory extends StatefulWidget {
   @override
@@ -39,7 +39,8 @@ class _AddCategoryState extends State<AddCategory> {
       FirebaseDatabase.instance.reference().child("product");
 
   var connectivity;
-
+  var dir;
+  var files;
   getCurrentUser() async {
     user = await _auth.currentUser();
     connectivity = await (Connectivity().checkConnectivity());
@@ -47,7 +48,9 @@ class _AddCategoryState extends State<AddCategory> {
     print(user.email.toString());
   }
 
+
   @override
+
   void initState() {
     // TODO: implement initState
     super.initState();
@@ -55,19 +58,24 @@ class _AddCategoryState extends State<AddCategory> {
     getCurrentUser();
 
 
-    productRef.once().then((DataSnapshot snapshot) async{
-       connectivity = await(Connectivity().checkConnectivity());
-      if (snapshot.value != null) {
-        var keys = snapshot.value.keys;
-        var DATA = snapshot.value;
-        Map<dynamic, dynamic> map = snapshot.value;
-        int listLength = map.values.toList().length;
-        for (var individualKey in keys) {
-          carouselImage.add(DATA[individualKey]['image_0'].toString());
+    FirebaseDatabase.instance
+        .reference()
+        .child("Users")
+        .once()
+        .then((DataSnapshot snapshot) {
+      var key = snapshot.value.keys;
+      var DATA = snapshot.value;
+      for (var individualkey in key) {
+        if (user.email == DATA[individualkey]['email']) {
+          userPhone = DATA[individualkey]['identity'];
+          userName = DATA[individualkey]['userName'];
+          print("phone $userPhone");
+          print("name $userName");
         }
       }
     });
   }
+
 
   var keys, data;
   List<String> Data;
@@ -85,18 +93,18 @@ class _AddCategoryState extends State<AddCategory> {
         imageTempStore = [];
       });
     }
-    // var checkValue = value.substring(0,1).toUpperCase()+value.substring(1);
-//    print("captiatl${captialValue}");
-    // print("value${value.toString().length}");
 
+    var capitalizedValue = value.substring(0,1).toUpperCase()+value.substring(1);
     if (queryResultSet.isEmpty && value.toString().length == 1) {
       print("true");
       Query query = FirebaseDatabase.instance
           .reference()
           .child('product')
           .orderByChild('firstLetter')
-          .equalTo(value.substring(0, 1));
+          .equalTo(value.substring(0, 1).toUpperCase());
+
       query.once().then((DataSnapshot snapshot) {
+
         var KEYS = snapshot.value.keys;
         var DATA = snapshot.value;
         for (var individualKey in KEYS) {
@@ -114,7 +122,7 @@ class _AddCategoryState extends State<AddCategory> {
       queryResultSet.forEach((element) {
         print("titus element${element['productName']}");
         //print("element is ${element['productName'][0]}");
-        if (element['productName'].toString()[0] == value[0]) {
+        if (element['productName'].toString().startsWith(capitalizedValue)) {
           print("hooray");
           setState(() {
             tempSearchStore.add(element);
@@ -128,7 +136,22 @@ class _AddCategoryState extends State<AddCategory> {
       });
     }
   }
+getFiles()async {
+   dir = await getExternalStorageDirectory();
+   bool checkDirectory =
+   await Directory('${dir.path}/Afroel').exists();
+   if(checkDirectory){
+     var testdir = await Directory('${dir.path}/Afroel');
+     print("path is ${testdir.path}");
+     var fm = FileManager(root: Directory(testdir.path));
+     files = await fm.filesTree(
 
+         extensions: ["pdf"] //optional, to filter files, list only pdf files
+
+     );
+   }
+
+}
   bool searchVisible = false;
 
   @override
@@ -215,7 +238,7 @@ class _AddCategoryState extends State<AddCategory> {
               InkWell(
                 child: ListTile(
                   leading: Icon(
-                    Icons.shopping_cart,
+                    Icons.book,
                     color: background,
                   ),
                   title: Text('Digital Documents'),
@@ -223,22 +246,37 @@ class _AddCategoryState extends State<AddCategory> {
                     // CategoriesVendor();
                     Navigator.of(context).pop();
                     Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => fetchDigital()));
+                        builder: (context) => fetchDigital(userPhone,userName)));
                   },
                 ),
               ),
               InkWell(
                 child: ListTile(
                   leading: Icon(
-                    Icons.shopping_cart,
+                    Icons.pageview,
                     color: background,
                   ),
                   title: Text('see Documents'),
-                  onTap: () {
+                  onTap: () async{
+                   getFiles();
+//                   dir = await getExternalStorageDirectory();
+//                   bool checkDirectory =
+//                   await Directory('${dir.path}/Afroel').exists();
+//                   if(checkDirectory){
+//                     var testdir = await Directory('${dir.path}/Afroel');
+//                     print("path is ${testdir.path}");
+//                     var fm = FileManager(root: Directory(testdir.path));
+//                     files = await fm.filesTree(
+//
+//                         extensions: ["pdf"] //optional, to filter files, list only pdf files
+//
+//                     );
+//                   }
                     // CategoriesVendor();
+                   print("the files is ${files}");
                     Navigator.of(context).pop();
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => ViewDigital()));
+                    await Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => ViewDigital(files)));
                   },
                 ),
               ),
@@ -447,120 +485,8 @@ Widget buildResultCard(data, BuildContext context) {
     ),
   );
 }
-class Help extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Help'),
-        backgroundColor: background_2,
-      ),
-      body:Column(
-        children: <Widget>[
-          Icon(
-            Icons.live_help,
-            size: 150,
-          ),
-          Text("Developer's Contact",style:TextStyle(fontWeight: FontWeight.bold,fontSize: 20)),
-           SizedBox(height: 20,),
-          Column(children: <Widget>[
-            GestureDetector(
-            onTap:(){UrlLauncher.launch('tel:0924334695');},
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Icon(Icons.call),
-                  Text('0924334695',style:TextStyle(fontWeight: FontWeight.bold))
-                ],
-              ),
-            ),
-            SizedBox(height: 20,),
-            GestureDetector(
-           onTap:(){UrlLauncher.launch('tel:0962491657');}
-            ,child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Icon(Icons.call),
-                Text('0962491657',style:TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ))
-          ],),
- SizedBox(height: 20,),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text("Adminstrator's Contact",style:TextStyle(fontWeight: FontWeight.bold,fontSize: 20)),
-              GestureDetector(
-                child:Row(
-                  children: <Widget>[
-                    Icon(Icons.subdirectory_arrow_right),
-                    Text('0936377294',style:TextStyle(fontWeight: FontWeight.bold,backgroundColor: Colors.grey.shade400)),
-                  ],
-                ),
-                onTap: (){
-                  UrlLauncher.launch('tel:0936377294');
-                },
-              )
-            ],
-          )
 
-        ],
-      )
-    );
-  }
-}
 
-class About extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('About'),
-        backgroundColor: background_2,
-      ),
-      body: Column(
-        children: <Widget>[
-          Icon(
-            Icons.alternate_email,
-            size: 150,
-          ),
-          Column(
-            children: <Widget>[
-              Container(child: Center(child: Text('Run by Digital Center ......'))),
-              SizedBox(height: 20,),
-              Container(child:Center(child:Padding(padding:EdgeInsets.all(10),child:Text('This app is designed and developed to meet your shoping interest:')))),
-              SizedBox(height: 20,),
-              Column(
-                children: <Widget>[
-                 Row(
-                   children: <Widget>[
-                     Icon(Icons.comment),
-                     SizedBox(width: 10,),
-                     Text('1 If you want to give comment on our service')
-                   ],
-
-                 ),
-                  SizedBox(height: 10,),
-                  Row(
-                    children: <Widget>[
-                      Icon(Icons.report_problem),
-                      SizedBox(width: 10,),
-                      Text('2 If you want to report any problem')
-                    ],
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Padding(padding:EdgeInsets.all(20),child: Text("Don't hesitate to call us using the numbers listed in help section!!"))
-                ],
-              )
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class carouselVar {
   String image;

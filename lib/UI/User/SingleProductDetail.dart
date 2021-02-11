@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_pro/carousel_pro.dart';
 import 'package:flutter/painting.dart';
-import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:pinput/pin_put/pin_put.dart';
 import 'package:random_string/random_string.dart';
 import 'package:vendor/LogInUI.dart';
 import 'package:vendor/LoginScreen.dart';
@@ -19,10 +19,10 @@ FirebaseDatabase.instance.reference().child("Requests");
 var Generatedcode;
 String userPhone;
 String userName;
-int counter = 0;
 int counter2 = 0;
-int counter3 = 0;
+int _value =1;
 String date;
+
 class SingleProductDetail extends StatefulWidget {
   final String productImage_1;
   final String productImage_2;
@@ -89,6 +89,7 @@ print(date);
         }
       }
     });
+
   }
 
   @override
@@ -161,16 +162,19 @@ print(date);
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
+
+
                         Container(
                           padding: EdgeInsets.only(top: 10, bottom: 10),
                           child: Text(
                             "Product Description",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: fontHeader,
+                                fontSize: 18,
                                 color: background_2),
                           ),
                         ),
+
                         Container(
                           child: signedIn
                               ? IconButton(
@@ -183,6 +187,7 @@ print(date);
                                     setState(() {
                                       if (buttonColor == true) {
                                         buttonColor = false;
+
                                       } else {
                                         buttonColor = true;
                                       }
@@ -201,6 +206,7 @@ print(date);
                                             if (DATA[individualKey]
                                                     ['productName'] ==
                                                 widget.productTitle) {
+                                              print('not addded');
                                               counter2++;
                                             }
                                           }
@@ -208,6 +214,7 @@ print(date);
                                       }
                                     });
                                     if (counter2 == 0) {
+                                      print('added');
                                       await reqWish
                                           .push()
                                           .set(<dynamic, dynamic>{
@@ -219,7 +226,41 @@ print(date);
                                     }
                                   })
                               : Text(""),
-                        )
+                        ),
+                        Text('Qty',style:TextStyle(fontSize:18)),
+                        DropdownButton(
+                          onChanged: (value){
+                            setState(() {
+                              _value = value;
+                            });
+                          },
+                          value: _value,
+                          items: [
+                            DropdownMenuItem(
+                              child:Text('1'),
+                              value: 1,
+                            ),
+                            DropdownMenuItem(
+                              child:Text('2'),
+                              value: 2,
+                            ),
+                            DropdownMenuItem(
+                              child:Text('3'),
+                              value: 3,
+                            ),
+                            DropdownMenuItem(
+                              child:Text('4'),
+                              value: 4,
+                            ),
+                            DropdownMenuItem(
+                              child:Text('5'),
+                              value: 5,
+                            ),
+
+
+                          ],
+
+                        ),
                       ],
                     ),
                     Expanded(
@@ -230,9 +271,9 @@ print(date);
                             Container(
                               child: Text(
                                 widget.productDescription,
-                                textAlign: TextAlign.left,
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: 20, color: Colors.grey.shade500),
+                                    fontSize: 20, color: Colors.black),
                               ),
                               alignment: Alignment.topLeft,
                             )
@@ -301,7 +342,8 @@ print(date);
                             'requestedFrom':userPhone,
                             'userName':userName,
                             'date':date,
-                            'price':widget.productPrice
+                            'quantity':_value,
+                            'price':widget.productPrice*_value
                           });
 
                           //   _showSnackBar('Enter your confirmation code');
@@ -360,7 +402,12 @@ class _InsertCodeState extends State<InsertCode> {
 
   @override
   Widget build(BuildContext context) {
+    final BoxDecoration pinPutDecoration = BoxDecoration(
+      color: const Color.fromRGBO(0, 0, 0,5),
+//      borderRadius: BorderRadius.circular(20.0),
+    );
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: background_2,
         title: Text('Confirm'),
@@ -369,24 +416,31 @@ class _InsertCodeState extends State<InsertCode> {
         color: Colors.white,
         child: ListView(
           children: <Widget>[
-            Image.asset("assets/images/download.jpg"),
+
+            SizedBox(height: 30,),
             Container(
               child: GestureDetector(
                 onTap: () => UrlLauncher.launch('tel:0936377294'),
                 child: Center(
                   child: Column(
-                    children: <Widget>[Text("Call Admin"), Text('0936377294')],
+                    children: <Widget>[Text("Call Admin",style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold),), Text('0936377294',style: TextStyle(fontWeight: FontWeight.bold),)],
                   ),
                 ),
               ),
             ),
+            SizedBox(height: 10,),
             Column(
               children: <Widget>[
                 Container(
                   width: 200,
                   margin: EdgeInsets.only(left: 50, right: 50),
-                  child: PinCodeTextField(
-                    onCompleted: (value) async {
+                  child: PinPut(
+                    keyboardType: TextInputType.text,
+                    fieldsCount: 5,
+                    autofocus: true,
+                    withCursor: true,
+                    textStyle: TextStyle(color: Colors.red,fontWeight: FontWeight.bold,fontSize: 18),
+                    onSubmit: (value) async {
 
                       if (Generatedcode == value) {
                         print("equal with Generated code ie${Generatedcode}");
@@ -413,20 +467,15 @@ class _InsertCodeState extends State<InsertCode> {
                         print("Error confirmation code");
                       }
                     },
-                    backgroundColor: fontWhite,
+
                     controller: controller,
-                    length: 5,
-                    obsecureText: false,
-                    animationType: AnimationType.fade,
-                    shape: PinCodeFieldShape.box,
-                    animationDuration: Duration(milliseconds: 300),
-                    borderRadius: BorderRadius.circular(5),
-                    fieldHeight: 40,
-                    fieldWidth: 40,
-                    selectedColor: background_2,
-                    activeColor: background,
-                    inactiveColor: background_2,
-                    inactiveFillColor: Colors.white70,
+
+                    selectedFieldDecoration: pinPutDecoration,
+                    followingFieldDecoration: pinPutDecoration,
+                    submittedFieldDecoration:  pinPutDecoration.copyWith(color: Colors.white),
+                    eachFieldHeight: 40,
+                    eachFieldWidth: 40,
+                    pinAnimationType: PinAnimationType.scale,
                     onChanged: (value) {
                       setState(() {
                         currentText = value;
@@ -448,6 +497,7 @@ class _InsertCodeState extends State<InsertCode> {
                 ),
               ],
             ),
+            Image.asset("assets/images/download.jpg"),
           ],
         ),
       ),

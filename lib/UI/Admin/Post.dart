@@ -175,14 +175,14 @@ class _PostState extends State<Post> {
                   ),
 
                   onPressed: () async {
-                    print("userName: ${userName}");
+
 
                     print(selectedCategoryList);
-
                     var connectivity = await(Connectivity().checkConnectivity());
-                    //print(connectivity);
-                    if(connectivity == ConnectivityResult.mobile || connectivity == ConnectivityResult.wifi) {
+                  if(connectivity == ConnectivityResult.mobile || connectivity == ConnectivityResult.wifi) {
 
+
+                      //print(connectivity);
 
                       if(productName.text.isNotEmpty&&productDetail.text.isNotEmpty&&productPrice.text.isNotEmpty&&images.length==3){
 
@@ -422,14 +422,7 @@ Future uploadtoFirebase(List<Asset> Image,String categoryName,FirebaseUser user)
     listurl.add(url);
 
   }
-//  var url1= await upload(image1);
-//  listurl.add(url1);
-//  var url2 = await upload(image2);
-//  listurl.add(url2);
-//  var url3= await upload(image3);
-//  listurl.add(url3);
-//  var url4 = await upload(image4);
-//  listurl.add(url4);
+
   await usersRef.once().then((DataSnapshot snap) {
     var KEYS = snap.value.keys;
     var DATA = snap.value;
@@ -442,8 +435,8 @@ Future uploadtoFirebase(List<Asset> Image,String categoryName,FirebaseUser user)
   });
 
   await productRef.push().set(<dynamic, dynamic> {
-    'productName': productName.text.toString(),
-    'firstLetter':productName.text.toString()[0],
+    'productName': productName.text.substring(0,1).toUpperCase()+productName.text.substring(1,productName.text.length),
+    'firstLetter':productName.text.substring(0,1).toUpperCase(),
     'productDescription': productDetail.text.toString(),
     'productPrice': int.parse(productPrice.text.toString()),
     'productCategory':categoryName,
@@ -455,8 +448,8 @@ Future uploadtoFirebase(List<Asset> Image,String categoryName,FirebaseUser user)
   });
   for(int i=0; i<selectedCategoryList.length;i++){
   await productRef.push().set(<dynamic, dynamic> {
-    'productName': productName.text.toString(),
-    'firstLetter': productName.text.toString()[0],
+    'productName':productName.text.substring(0,1).toUpperCase()+productName.text.substring(1,productName.text.length),
+    'firstLetter':productName.text.substring(0,1).toUpperCase(),
     'productDescription': productDetail.text.toString(),
     'productPrice': int.parse(productPrice.text.toString()),
     'productCategory':selectedCategoryList[i],

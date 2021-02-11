@@ -89,6 +89,11 @@ class _SpecificCategoryListVendorState
 
   @override
   Widget build(BuildContext context) {
+    Query postedRef = FirebaseDatabase.instance
+        .reference()
+        .child("product")
+        .orderByChild("productCategory")
+        .equalTo(widget.category);
     return SafeArea(
       child: Scaffold(
         backgroundColor: background_2,
@@ -126,30 +131,92 @@ class _SpecificCategoryListVendorState
               Expanded(
                 child: Container(
                   color: Colors.white,
-                  child: postedProducts.isNotEmpty ? GridView.builder(
-                      scrollDirection: Axis.vertical,
-                      itemCount: postedProducts.length,
-                      padding: EdgeInsets.all(5),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10),
-                      itemBuilder: (BuildContext context, int index) {
-                        return SingleCategory(
-                          postedProducts[index].productName,
-                          postedProducts[index].productDescription,
-                          postedProducts[index].productPrice,
-                          postedProducts[index].productCategory,
-                          postedProducts[index].image_0,
-                          postedProducts[index].image_1,
-                          postedProducts[index].image_2,
-                          postedProducts[index].key.toString(),
-                        );
-                      }):
+                  child: StreamBuilder(
+                    stream: postedRef.onValue,
+                    builder: (context, snapshot) {
+                      if(snapshot.data!=null) {
+                        Map map = snapshot.data.snapshot.value;
+                        return GridView.builder(
+                            scrollDirection: Axis.vertical,
+                            itemCount: map.values.toList().length,
+                            padding: EdgeInsets.all(5),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10),
+                            itemBuilder: (BuildContext context, int index) {
+                              return GestureDetector(
+                                onLongPress: () {
+                                  print("Delete");
+                                  return showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          title: Text('Are you sure you want to delete!!'),
+                                          actions: <Widget>[
+                                            RaisedButton(
+                                              child: Text('Yes'),
+                                              onPressed: () {
+                                                FirebaseDatabase.instance
+                                                    .reference()
+                                                    .child("product")
+                                                    .child(map.keys.toList()[index].toString())
+                                                    .remove();
 
-                     Center(
-                       child: Text("No product")
-                     )
+                                                setState(() {
+                                                  Navigator.of(context).pop();
+                                                });
+                                              },
+                                            ),
+                                            RaisedButton(
+                                              child: Text('No'),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            )
+                                          ],
+                                        );
+                                      });
+                                },
+
+                                child: Column(
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: Card(
+                                          child: GridTile(
+                                            child: FadeInImage(
+                                              placeholder:
+                                              AssetImage('assets/images/men1.jpeg'),
+                                              image: NetworkImage(map.values.toList()[index]['image_0']),
+                                              fit: BoxFit.cover,
+                                            ),
+                                          )),
+                                    ),
+                                    Container(
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        map.values.toList()[index]['productName'],
+                                        style: TextStyle(fontWeight: FontWeight.w800),
+                                      ),
+                                    ),
+                                    Container(
+                                      alignment: Alignment.center,
+                                      child: Text('${map.values.toList()[index]['productPrice']} ETB'.toString(),
+                                          style: TextStyle(
+                                              color: Colors.red)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            });
+                      }
+                      return Center(
+                          child: Text("No product")
+                      );
+                    }
+                  )
+
+
 
                 ),
               )
@@ -170,103 +237,3 @@ class _SpecificCategoryListVendorState
   }
 }
 
-class SingleCategory extends StatefulWidget {
-  @override
-  _SingleCategoryState createState() => _SingleCategoryState();
-  final String productName;
-  final String productDescription;
-  final int productPrice;
-  final String productCategory;
-  final String productImage_0;
-  final String productImage_1;
-  final String productImage_2;
-
-  //final String productImage_3;
-  final String ke;
-
-  SingleCategory(this.productName,
-      this.productDescription,
-      this.productPrice,
-      this.productCategory,
-      this.productImage_0,
-      this.productImage_1,
-      this.productImage_2,
-      //this.productImage_3,
-      this.ke);
-}
-
-class _SingleCategoryState extends State<SingleCategory> {
-  @override
-  Widget build(BuildContext context) {
-    print("key is ${widget.ke}");
-    return SafeArea(
-      child: Scaffold(
-        body: GestureDetector(
-          onLongPress: () {
-            print("Delete");
-            return showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: Text('Are you sure you want to delete!!'),
-                    actions: <Widget>[
-                      RaisedButton(
-                        child: Text('Yes'),
-                        onPressed: () {
-                          FirebaseDatabase.instance
-                              .reference()
-                              .child("product")
-                              .child(widget.ke)
-                              .remove();
-                          widget.ke.isEmpty == true;
-                          setState(() {
-                            Navigator.of(context).pop();
-                          });
-                        },
-                      ),
-                      RaisedButton(
-                        child: Text('No'),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      )
-                    ],
-                  );
-                });
-          },
-
-          child: Column(
-            children: <Widget>[
-              Expanded(
-                child: Card(
-                    child: GridTile(
-                      child: FadeInImage(
-                        placeholder:
-                        AssetImage('assets/images/men1.jpeg'),
-                        image: NetworkImage(widget.productImage_0),
-                        fit: BoxFit.cover,
-                      ),
-                    )),
-              ),
-              Container(
-                alignment: Alignment.center,
-                child: Text(
-                  widget.productName,
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-              ),
-              Container(
-                alignment: Alignment.center,
-                child: Text('${widget.productPrice} ETB'.toString(),
-                    style: TextStyle(
-                        color: Colors.red)),
-              ),
-            ],
-          ),
-        ),
-
-      ),
-
-    );
-  }
-}

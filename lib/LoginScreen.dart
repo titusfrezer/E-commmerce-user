@@ -1,9 +1,11 @@
-import 'package:connectivity/connectivity.dart';
+//import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:vendor/UI/User/fetchCategory.dart';
+import 'package:vendor/listRequest.dart';
+import 'package:vendor/nati.dart';
 
 import 'package:vendor/variables/vars.dart';
 
@@ -28,7 +30,7 @@ class _HomeControllerState extends State<HomeController> {
 
   getCurrentUser() async {
     user = await _auth.currentUser();
-    connectivity = await (Connectivity().checkConnectivity());
+//    connectivity = await (Connectivity().checkConnectivity());
     //print(user.email.toString());
   }
 
@@ -82,7 +84,7 @@ class _HomeControllerState extends State<HomeController> {
 //          }
 //
 //        } return  Center(child: CircularProgressIndicator());;
-          return  signedIn? AddCategory(): fetchCategory();
+          return  signedIn? ListRequest(): LoginScreen();
 
         }
         return CircularProgressIndicator();
@@ -121,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Duration get loginTime => Duration(milliseconds: 2250);
 
   Future<String> _authUser(LoginData data) {
-    userName = data.name;
+    String userName = data.name;
 
 
 
@@ -227,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 buttonTheme: LoginButtonTheme(backgroundColor: background),
                 primaryColor: background_2,
               ),
-              title: 'E-commerce',
+              title: 'Afroel E-commerce',
               logo: 'assets/images/ecorp-lightblue.png',
               onLogin: _authUser,
               onSignup: _signupUser,

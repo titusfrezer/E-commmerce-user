@@ -32,18 +32,18 @@ dependencies:
   connectivity:
   flutter_staggered_grid_view:
   http:
-  flushbar: 1.9.1
+  flushbar: ^1.10.4
   auto_size_text:
   flutter_spinkit:
   intro_slider: ^2.2.9
   random_string:
-  pin_code_fields:
-  url_launcher:
   permission_handler: 4.4.0
   flutter_file_manager: ^0.2.0
-  flutter_full_pdf_viewer: ^1.0.6
   dio:
   path_provider:
+  url_launcher:
+  pdf_viewer_plugin: ^1.0.0+2
+  pinput: ^0.2.6
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -68,6 +68,9 @@ flutter:
      - assets/images/download.png
      - assets/images/download.jpg
      - assets/images/pdf.png
+     - assets/images/book1.jpg
+     - assets/images/book2.jpg
+     - assets/images/book.jfif
   #  - images/a_dot_ham.jpeg
 
 
